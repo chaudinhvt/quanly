@@ -123,49 +123,54 @@
 
         // Hàm Lưu và Đồng bộ
         async function themGiaoDich() {
-            const ngay = document.getElementById('ngay').value;
-            const diengiai = document.getElementById('diengiai').value.trim();
-            const sotienStr = document.getElementById('sotien').value;
-            const sotien = getRawAmount(sotienStr);
-            const btn = document.getElementById('btnSubmit');
+    const ngay = document.getElementById('ngay').value;
+    const diengiai = document.getElementById('diengiai').value.trim();
+    const sotienStr = document.getElementById('sotien').value;
+    const sotien = getRawAmount(sotienStr);
+    const btn = document.getElementById('btnSubmit');
 
-            if (!ngay || !diengiai || sotien <= 0) {
-                alert("Vui lòng nhập đầy đủ thông tin và số tiền hợp lệ!"); 
-                return;
-            }
+    // --- LOGIC KIỂM TRA MỚI ---
+    const laNghiBan = diengiai.toLowerCase().includes("nghỉ bán");
 
-            btn.innerText = "⌛ ĐANG LƯU...";
-            btn.disabled = true;
+    // Nếu không phải nghỉ bán mà tiền <= 0, hoặc thiếu thông tin thì báo lỗi
+    if (!ngay || !diengiai || (sotien <= 0 && !laNghiBan)) {
+        alert("Vui lòng nhập đầy đủ thông tin! Số tiền chỉ được bằng 0 nếu diễn giải có chữ 'Nghỉ bán'."); 
+        return;
+    }
 
-            try {
-                // Gửi dữ liệu tới Apps Script
-                await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ ngay, diengiai, sotien })
-                });
+    // --- CÁC BƯỚC XỬ LÝ ĐỒNG BỘ ---
+    btn.innerText = "⌛ ĐANG LƯU...";
+    btn.disabled = true;
 
-                alert("Lưu thành công!");
-                
-                // Reset form nhập liệu
-                document.getElementById('diengiai').value = '';
-                document.getElementById('sotien').value = '';
-                
-                // Cập nhật giao diện tạm thời để người dùng thấy ngay
-                danhSach.unshift({ ngay, diengiai, sotien });
-                renderBang();
-                
-                // Tải lại dữ liệu chuẩn từ server sau 2 giây
-                setTimeout(taiDuLieuTuSheet, 2000);
+    try {
+        // 1. Gửi dữ liệu tới Apps Script
+        await fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ngay, diengiai, sotien })
+        });
 
-            } catch (e) {
-                alert("Lỗi kết nối đồng bộ: " + e.message);
-            } finally {
-                btn.innerText = "💾 LƯU & ĐỒNG BỘ";
-                btn.disabled = false;
-            }
-        }
+        alert("Lưu thành công!");
+        
+        // 2. Reset form nhập liệu
+        document.getElementById('diengiai').value = '';
+        document.getElementById('sotien').value = '';
+        
+        // 3. Cập nhật giao diện tạm thời để người dùng thấy ngay kết quả trên bảng
+        danhSach.unshift({ ngay, diengiai, sotien });
+        renderBang();
+        
+        // 4. Tải lại dữ liệu chuẩn từ server sau 2 giây để đảm bảo đồng bộ 100%
+        setTimeout(taiDuLieuTuSheet, 2000);
+
+    } catch (e) {
+        alert("Lỗi kết nối đồng bộ: " + e.message);
+    } finally {
+        btn.innerText = "💾 LƯU & ĐỒNG BỘ";
+        btn.disabled = false;
+    }
+}
 
         function renderBang(dataFiltered = null) {
             const data = dataFiltered || danhSach;
