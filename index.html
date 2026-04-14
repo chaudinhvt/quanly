@@ -123,12 +123,19 @@
 
         // Hàm Lưu và Đồng bộ
         async function themGiaoDich() {
-    const ngay = document.getElementById('ngay').value;
+    const ngayRaw = document.getElementById('ngay').value; // Giá trị gốc yyyy-mm-dd
     const diengiai = document.getElementById('diengiai').value.trim();
     const sotienStr = document.getElementById('sotien').value;
     const sotien = getRawAmount(sotienStr);
     const btn = document.getElementById('btnSubmit');
 
+    // --- CHUYỂN ĐỔI ĐỊNH DẠNG NGÀY SANG dd/mm/yyyy ---
+    let ngayHienThi = ngayRaw;
+    if (ngayRaw) {
+        const [y, m, d] = ngayRaw.split('-');
+        ngayHienThi = `${d}/${m}/${y}`;
+    }
+            
     // --- LOGIC KIỂM TRA LINH HOẠT ---
     const diengiaiLower = diengiai.toLowerCase();
     
