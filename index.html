@@ -129,12 +129,17 @@
     const sotien = getRawAmount(sotienStr);
     const btn = document.getElementById('btnSubmit');
 
-    // --- LOGIC KIỂM TRA MỚI ---
-    const laNghiBan = diengiai.toLowerCase().includes("nghỉ bán");
+    // --- LOGIC KIỂM TRA LINH HOẠT ---
+    const diengiaiLower = diengiai.toLowerCase();
+    
+    // Danh sách các từ khóa cho phép số tiền bằng 0
+    const choPhepSo0 = diengiaiLower.includes("nghỉ bán") || 
+                       diengiaiLower.includes("không có doanh thu") || 
+                       diengiaiLower.includes("không bán được");
 
-    // Nếu không phải nghỉ bán mà tiền <= 0, hoặc thiếu thông tin thì báo lỗi
-    if (!ngay || !diengiai || (sotien <= 0 && !laNghiBan)) {
-        alert("Vui lòng nhập đầy đủ thông tin! Số tiền chỉ được bằng 0 nếu diễn giải có chữ 'Nghỉ bán'."); 
+    // Điều kiện chặn: Thiếu ngày/diễn giải HOẶC (Tiền <= 0 nhưng không thuộc diện cho phép)
+    if (!ngay || !diengiai || (sotien <= 0 && !choPhepSo0)) {
+        alert("⚠️ Vui lòng kiểm tra lại!\n\nSố tiền chỉ được bằng 0 nếu diễn giải chứa cụm từ: 'Nghỉ bán', 'Không có doanh thu' hoặc 'Không bán được'."); 
         return;
     }
 
