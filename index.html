@@ -2,124 +2,122 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Doanh thu S1a-HKD</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quản Lý Doanh Thu S1a-HKD</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* --- CSS STYLE MẶC ĐỊNH CỦA BẠN (TỐI GIẢN) --- */
-        body { padding: 20px; background-color: #f8f9fa; }
-        .container { max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .btn-primary { width: 100%; font-weight: bold; margin-top: 10px; }
-        .tong-cong { font-weight: bold; color: red; font-size: 1.2rem; }
-        .table-container { margin-top: 20px; overflow-x: auto; }
-        .text-right { text-align: right !important; }
-        
-        /* Màu nền nhạt cho các dòng Nghỉ bán/Không doanh thu */
-        .tr-nghi-ban {
-            background-color: #fff3cd !important;
-            font-style: italic;
+        :root { --primary: #2980b9; --success: #27ae60; --dark: #2c3e50; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 15px; background: var(--bg); color: var(--dark); }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        h1 { text-align: center; font-size: 1.1rem; color: var(--dark); text-transform: uppercase; }
+        label { font-weight: bold; font-size: 0.85rem; display: block; margin-top: 10px; color: #555; }
+        input, textarea, select { 
+            width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; 
+            border-radius: 8px; font-size: 16px; box-sizing: border-box;
         }
+        button { 
+            padding: 14px; margin: 10px 0; font-size: 16px; font-weight: bold;
+            width: 100%; border: none; border-radius: 8px; cursor: pointer; color: white;
+        }
+        .btn-save { background: var(--success); }
+        .btn-export { background: var(--primary); }
+        .filter-group { display: flex; gap: 8px; margin-bottom: 10px; }
+        .table-container { overflow-x: auto; background: white; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; min-width: 350px; }
+        th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: left; font-size: 14px; }
+        th { background: var(--dark); color: white; }
+        .tong-box { background: #fff3f3; padding: 15px; border-radius: 8px; text-align: right; border: 1px solid #ffcccc; }
+        .tong { font-weight: bold; font-size: 1.3rem; color: #c0392b; }
+        .loading { opacity: 0.5; pointer-events: none; }
+        .tr-nghi-ban { background-color: #fffde7 !important; font-style: italic; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h3 class="text-center">QUẢN LÝ DOANH THU S1a-HKD</h3>
+<div class="card">
+    <h1>Quản Lý Doanh Thu S1a-HKD</h1>
+    
+    <label>Ngày tháng:</label>
+    <input type="date" id="ngay">
 
-    <div class="form-group">
-        <label>Ngày tháng:</label>
-        <input type="date" id="ngay" class="form-control">
+    <label>Diễn giải:</label>
+    <select id="diengiai" onchange="handleSelectChange()">
+        <option value="">-- Chọn nội dung --</option>
+        <option value="Doanh thu bán hàng">Doanh thu bán hàng</option>
+        <option value="Nghỉ bán">Nghỉ bán</option>
+        <option value="Không có doanh thu">Không có doanh thu</option>
+        <option value="Khác">Khác (Tự nhập tay)</option>
+    </select>
+
+    <div id="oNhapKhac" style="display: none;">
+        <input type="text" id="diengiaiKhac" placeholder="Nhập nội dung cụ thể...">
     </div>
 
-    <div class="form-group">
-        <label>Diễn giải:</label>
-        <select id="diengiai" class="form-control" onchange="handleSelectChange()">
-            <option value="">-- Chọn nội dung --</option>
-            <option value="Doanh thu bán hàng">Doanh thu bán hàng</option>
-            <option value="Nghỉ bán">Nghỉ bán</option>
-            <option value="Không có doanh thu">Không có doanh thu</option>
-            <option value="Khác">Khác (Tự nhập tay)</option>
+    <label>Số tiền (VNĐ):</label>
+    <input type="text" id="sotien" placeholder="0" oninput="formatInputMoney(this)">
+
+    <button id="btnSubmit" class="btn-save" onclick="themGiaoDich()">💾 LƯU & ĐỒNG BỘ</button>
+</div>
+
+<div class="card">
+    <div class="filter-group">
+        <select id="thangFilter" onchange="locDuLieu()">
+            <option value="">Tất cả tháng</option>
         </select>
-    </div>
-
-    <div id="oNhapKhac" style="display: none; margin-top: 10px; margin-bottom: 10px;">
-        <input type="text" id="diengiaiKhac" class="form-control" placeholder="Nhập nội dung cụ thể...">
-    </div>
-
-    <div class="form-group">
-        <label>Số tiền (VNĐ):</label>
-        <input type="text" id="sotien" class="form-control" placeholder="0" oninput="formatInputMoney(this)">
-    </div>
-
-    <button id="btnSubmit" class="btn btn-primary" onclick="themGiaoDich()">💾 LƯU & ĐỒNG BỘ</button>
-
-    <hr>
-
-    <div class="row mb-3">
-        <div class="col">
-            <select id="thangFilter" class="form-control" onchange="locDuLieu()">
-                <option value="">Tất cả tháng</option>
-            </select>
-        </div>
-        <div class="col">
-            <input type="text" id="timKiem" class="form-control" placeholder="Tìm kiếm nhanh..." oninput="locDuLieu()">
-        </div>
+        <input type="text" id="timKiem" placeholder="Tìm kiếm..." oninput="locDuLieu()">
     </div>
 
     <div class="table-container">
-        <table class="table table-bordered table-striped" id="bangDoanhThu">
-            <thead class="thead-dark">
+        <table id="bangDoanhThu">
+            <thead>
                 <tr>
                     <th>Ngày</th>
                     <th>Diễn giải</th>
-                    <th class="text-right">Số tiền</th>
+                    <th style="text-align: right;">Số tiền</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
     </div>
-    <div class="text-right tong-cong">Tổng cộng: <span id="tongTien">0</span> VNĐ</div>
+</div>
+
+<div class="card tong-box">
+    <div>TỔNG CỘNG THÁNG:</div>
+    <div class="tong"><span id="tongTien">0</span> VNĐ</div>
 </div>
 
 <script>
-    // --- 1. CẤU HÌNH (THAY LINK CỦA BẠN VÀO ĐÂY) ---
+    // --- CẤU HÌNH ---
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCTaA9hMx6lp9yRMkpqFw9DhBNh9nkVl4eirE1lza-LXArjWtWPzK8MQKUd78_J1XE/exec";
     const HARDCODED_SHEET_URL = "https://docs.google.com/spreadsheets/d/1zM5H0pempE7hRq2Yba-Xtj8qBlMMz30xVtyjkiaGWSk/edit?gid=0#gid=0"; 
-    let danhSach = []; // Biến chứa dữ liệu chính
+    let danhSach = [];
 
-    // --- 2. KHỞI TẠO KHI MỞ TRANG ---
     window.onload = function() {
-        // Tự động chọn ngày hôm nay cho ô Ngày
         document.getElementById('ngay').valueAsDate = new Date();
-        // Tải dữ liệu từ Google Sheets
         taiDuLieuTuSheet();
     };
 
-    // --- 3. XỬ LÝ DROPDOWN DIỄN GIẢI: THÔNG MINH ---
+    // --- LOGIC DROPDOWN ---
     function handleSelectChange() {
         const selectValue = document.getElementById('diengiai').value;
         const oSotien = document.getElementById('sotien');
         const oNhapKhac = document.getElementById('oNhapKhac');
 
-        // Hiện/ẩn ô nhập tay cho mục "Khác"
         oNhapKhac.style.display = (selectValue === "Khác") ? "block" : "none";
 
-        // Tự động điền số 0 cho mục đặc biệt
         if (selectValue === "Nghỉ bán" || selectValue === "Không có doanh thu") {
             oSotien.value = "0";
         } else {
-            // Nếu chuyển sang mục khác thì xóa trắng để người dùng nhập mới
             oSotien.value = "";
         }
     }
 
-    // --- 4. HÀM THÊM GIAO DỊCH (FIX LỖI {} VÀ CHECK LOGIC) ---
+    // --- LƯU GIAO DỊCH (FIX LỖI {}) ---
     async function themGiaoDich() {
-        const ngayRaw = document.getElementById('ngay').value; // yyyy-mm-dd
+        const ngayRaw = document.getElementById('ngay').value;
         const selectDiengiai = document.getElementById('diengiai');
         let diengiaiVal = selectDiengiai.value;
         
-        // Nếu chọn "Khác", lấy nội dung từ ô nhập tay
         if (diengiaiVal === "Khác") {
             diengiaiVal = document.getElementById('diengiaiKhac').value.trim();
         }
@@ -128,34 +126,27 @@
         const sotien = getRawAmount(sotienStr);
         const btn = document.getElementById('btnSubmit');
 
-        // 1. Xử lý ngày dd/mm/yyyy (Fix lỗi {} triệt để)
+        // Ép kiểu ngày chuẩn dd/mm/yyyy tránh lỗi object
         let ngayHienThi = "";
         if (ngayRaw) {
             const parts = ngayRaw.split('-');
-            if (parts.length === 3) {
-                // Ép kiểu String tường minh
-                ngayHienThi = String(parts[2]) + "/" + String(parts[1]) + "/" + String(parts[0]);
-            }
+            ngayHienThi = String(parts[2]) + "/" + String(parts[1]) + "/" + String(parts[0]);
         }
 
-        // 2. Kiểm tra điều kiện nhập liệu
         if (!ngayHienThi || !diengiaiVal) {
-            alert("⚠️ Vui lòng chọn ngày và nội dung diễn giải!");
+            alert("⚠️ Vui lòng điền đủ thông tin!");
             return;
         }
 
-        // Kiểm tra chặn doanh thu bằng 0
         if (selectDiengiai.value === "Doanh thu bán hàng" && sotien <= 0) {
-            alert("❌ Lỗi: 'Doanh thu bán hàng' phải có số tiền lớn hơn 0!");
+            alert("❌ Doanh thu bán hàng không được để là 0!");
             return;
         }
 
-        // 3. Trạng thái đang lưu
-        btn.innerText = "⌛ ĐANG LƯU...";
-        btn.disabled = true;
+        btn.classList.add('loading');
+        btn.innerText = "⏳ ĐANG LƯU...";
 
         try {
-            // 4. Gửi dữ liệu tới Apps Script
             await fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
@@ -168,68 +159,47 @@
             });
 
             alert("✅ Đã lưu thành công!");
-
-            // 5. Reset form
             selectDiengiai.value = "";
             document.getElementById('diengiaiKhac').value = "";
             document.getElementById('oNhapKhac').style.display = "none";
             document.getElementById('sotien').value = "";
 
-            // 6. Cập nhật giao diện tạm thời (Sử dụng dữ liệu đã ép kiểu sạch)
-            const giaoDichMoi = { 
-                ngay: String(ngayHienThi), 
-                diengiai: String(diengiaiVal), 
-                sotien: Number(sotien) 
-            };
-            danhSach.unshift(giaoDichMoi);
+            danhSach.unshift({ ngay: String(ngayHienThi), diengiai: String(diengiaiVal), sotien: Number(sotien) });
             renderBang();
-            
-            // 7. Đồng bộ lại dữ liệu chuẩn từ server sau 2 giây
             setTimeout(taiDuLieuTuSheet, 2000);
-
         } catch (e) {
-            alert("❌ Lỗi kết nối: " + e.message);
+            alert("❌ Lỗi: " + e.message);
         } finally {
-            // 8. Khôi phục trạng thái nút bấm
+            btn.classList.remove('loading');
             btn.innerText = "💾 LƯU & ĐỒNG BỘ";
-            btn.disabled = false;
         }
     }
 
-    // --- 5. TẢI VÀ HIỂN THỊ DỮ LIỆU ---
+    // --- HIỂN THỊ VÀ LỌC ---
     async function taiDuLieuTuSheet() {
         try {
-            // Link export CSV sạch
             let csvUrl = HARDCODED_SHEET_URL.replace(/\/edit.*$/, '/export?format=csv&gid=0&t=' + new Date().getTime());
             const response = await fetch(csvUrl);
             const text = await response.text();
-            
-            const rows = text.split('\n').slice(1); // Bỏ dòng header
-            danhSach = []; // Xóa dữ liệu cũ
-
+            const rows = text.split('\n').slice(1);
+            danhSach = [];
             rows.forEach(row => {
-                // Tách cột bằng dấu phẩy, xử lý dấu ngoặc kép
                 const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 if (cols.length >= 3 && cols[0].trim() !== "") {
                     danhSach.push({
-                        ngay: cols[0].replace(/"/g, '').trim(), // dd/mm/yyyy
+                        ngay: cols[0].replace(/"/g, '').trim(),
                         diengiai: cols[1].replace(/"/g, '').trim(),
                         sotien: parseFloat(cols[2].replace(/"/g, '')) || 0
                     });
                 }
             });
-
-            // Sắp xếp dữ liệu ngày mới nhất (dd/mm/yyyy)
             danhSach.sort((a, b) => {
                 const pA = a.ngay.split('/'); const pB = b.ngay.split('/');
                 return (pB[2]+pB[1]+pB[0]) - (pA[2]+pA[1]+pA[0]);
             });
-
             renderBang();
             taoDanhSachThang();
-        } catch (e) {
-            console.error("Lỗi tải dữ liệu:", e);
-        }
+        } catch (e) { console.error(e); }
     }
 
     function renderBang(dataFiltered = null) {
@@ -237,21 +207,15 @@
         const tbody = document.querySelector('#bangDoanhThu tbody');
         tbody.innerHTML = '';
         let tong = 0;
-
         data.forEach(item => {
             const row = document.createElement('tr');
-            // Ép kiểu String cho ngày để không bị lỗi {}
-            const txtNgay = (typeof item.ngay === 'object') ? "" : String(item.ngay);
-            
-            // Tô màu nhạt cho dòng Nghỉ bán/Không doanh thu
             if (item.diengiai.includes("Nghỉ bán") || item.diengiai.includes("Không có doanh thu")) {
                 row.classList.add('tr-nghi-ban');
             }
-            
             row.innerHTML = `
-                <td>${txtNgay}</td>
+                <td>${String(item.ngay)}</td>
                 <td>${item.diengiai}</td>
-                <td class="text-right">${Number(item.sotien).toLocaleString('vi-VN')}</td>
+                <td style="text-align: right;">${Number(item.sotien).toLocaleString('vi-VN')}</td>
             `;
             tbody.appendChild(row);
             tong += Number(item.sotien);
@@ -259,50 +223,30 @@
         document.getElementById('tongTien').textContent = tong.toLocaleString('vi-VN');
     }
 
-    // --- 6. CÁC HÀM BỔ TRỢ (ĐỊNH DẠNG, LỌC) ---
-    // Định dạng VNĐ khi gõ (1.000.000)
     function formatInputMoney(input) {
         let v = input.value.replace(/\D/g, "");
-        if (v === "") { input.value = ""; return; }
         input.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
-    // Chuyển chuỗi (1.000.000) về số (1000000)
     function getRawAmount(str) {
-        if (!str) return 0;
         return parseFloat(str.replace(/\./g, "")) || 0;
     }
 
-    // Tạo danh sách tháng mm/yyyy cho bộ lọc
     function taoDanhSachThang() {
         const select = document.getElementById('thangFilter');
         const setThang = new Set();
-        
-        danhSach.forEach(i => { 
-            if(i.ngay && i.ngay.includes('/')) {
-                setThang.add(i.ngay.split('/')[1] + '/' + i.ngay.split('/')[2]);
-            }
-        });
-        
+        danhSach.forEach(i => { if(i.ngay.includes('/')) setThang.add(i.ngay.split('/')[1] + '/' + i.ngay.split('/')[2]); });
         select.innerHTML = '<option value="">Tất cả tháng</option>';
         Array.from(setThang).sort().reverse().forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t; opt.textContent = "Tháng " + t;
+            const opt = document.createElement('option'); opt.value = t; opt.textContent = "Tháng " + t;
             select.appendChild(opt);
         });
     }
 
-    // Lọc theo tháng và tìm kiếm
     function locDuLieu() {
-        const thang = document.getElementById('thangFilter').value; // mm/yyyy
+        const thang = document.getElementById('thangFilter').value;
         const key = document.getElementById('timKiem').value.toLowerCase();
-        
-        const filtered = danhSach.filter(i => {
-            const hopLeThang = thang ? i.ngay.endsWith(thang) : true;
-            const hopLeKey = i.diengiai.toLowerCase().includes(key) || i.ngay.includes(key);
-            return hopLeThang && hopLeKey;
-        });
-        
+        const filtered = danhSach.filter(i => (thang ? i.ngay.endsWith(thang) : true) && (i.diengiai.toLowerCase().includes(key) || i.ngay.includes(key)));
         renderBang(filtered);
     }
 </script>
