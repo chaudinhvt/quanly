@@ -130,6 +130,7 @@
 
         // Hàm Lưu và Đồng bộ
         async function themGiaoDich() {
+    //-- LẤY DỮ LIỆU TỪ Ô NHẬP LIỆU----
     const ngayRaw = document.getElementById('ngay').value; // Giá trị gốc yyyy-mm-dd
     const diengiai = document.getElementById('diengiai').value.trim();
     const sotienStr = document.getElementById('sotien').value;
@@ -137,7 +138,7 @@
     const btn = document.getElementById('btnSubmit');
 
     // --- CHUYỂN ĐỔI ĐỊNH DẠNG NGÀY SANG dd/mm/yyyy ---
-    let ngayHienThi = ngayRaw;
+    let ngayHienThi = "";
     if (ngayRaw) {
         const [y, m, d] = ngayRaw.split('-');
         ngayHienThi = `${d}/${m}/${y}`;
@@ -196,17 +197,27 @@
             const tbody = document.querySelector('#bangDoanhThu tbody');
             tbody.innerHTML = '';
             let tong = 0;
+            
             data.forEach(item => {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${item.ngay}</td>
-                    <td>${item.diengiai}</td>
-                    <td style="text-align:right">${item.sotien.toLocaleString('vi-VN')}</td>
-                `;
+                
+                // Đảm bảo item.ngay luôn là chuỗi văn bản, tránh hiện {}
+        const hienThiNgay = (typeof item.ngay === 'object') ? JSON.stringify(item.ngay) : String(item.ngay);
+        
+        row.innerHTML = `
+            <td>${hienThiNgay}</td>
+            <td>${item.diengiai}</td>
+            <td style="text-align:right">${Number(item.sotien).toLocaleString('vi-VN')}</td>
+        `;
+
                 tbody.appendChild(row);
                 tong += item.sotien;
             });
-            document.getElementById('tongTien').textContent = tong.toLocaleString('vi-VN');
+            // Cập nhật lại tổng tiền ở phía dưới bảng
+    const tongTienElement = document.getElementById('tongTien');
+    if (tongTienElement) {
+        tongTienElement.textContent = tong.toLocaleString('vi-VN');
+    }
         }
 
         function taoDanhSachThang() {
