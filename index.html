@@ -3,206 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Doanh thu Hộ Kinh Doanh - S1a-HKD</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>Quản lý Doanh thu S1a-HKD</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        /* --- CSS STYLE: GIAO DIỆN CHUYÊN NGHIỆP CỦA BẠN --- */
-        :root {
-            --primary-color: #007bff; /* Xanh dương chủ đạo */
-            --bg-color: #f4f7f6; /* Màu nền xám nhạt */
-            --text-color: #333; /* Màu chữ */
-            --success-color: #28a745; /* Màu xanh lá cho các nút/alert */
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 650px; /* Độ rộng form */
-            background: white;
-            padding: 25px;
-            border-radius: 15px; /* Bo góc form */
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08); /* Đổ bóng */
-        }
-
-        h3 {
-            text-align: center;
-            color: var(--primary-color);
-            font-weight: 700;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 7px;
-            font-weight: 500;
-            color: #555;
-            font-size: 0.95rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e1e1; /* Viền mờ */
-            border-radius: 8px; /* Bo góc ô nhập */
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color); /* Đổi màu khi focus */
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-        }
-
-        select.form-control {
-            appearance: none; /* Xóa style mặc định của select */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3%3path d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 18px;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.1s ease;
-            margin-top: 10px;
-        }
-
-        .btn-submit:hover {
-            background-color: #0069d9;
-        }
-
-        .btn-submit:active {
-            transform: scale(0.98); /* Hiệu ứng nhấn */
-        }
-
-        .btn-submit:disabled {
-            background-color: #a0cfff;
-            cursor: not-allowed;
-        }
-
-        hr {
-            margin: 30px 0;
-            border: 0;
-            border-top: 2px solid #eee;
-        }
-
-        /* --- CSS CHO PHẦN LỌC VÀ BẢNG: GIAO DIỆN CŨ --- */
-        .search-filter-section {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .search-filter-section .form-control {
-            padding: 10px 12px;
-            font-size: 0.9rem;
-        }
-
-        .table-container {
-            width: 100%;
-            overflow-x: auto; /* Cuộn ngang trên điện thoại */
-            border-radius: 8px;
-            border: 1px solid #eee;
-            margin-bottom: 15px;
-        }
-
-        .table-custom {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-            min-width: 400px; /* Đảm bảo bảng không bị quá hẹp */
-        }
-
-        .table-custom thead th {
-            background-color: #f8f9fa; /* Màu nền header */
-            color: #555;
-            font-weight: 600;
-            text-align: left;
-            padding: 12px 15px;
-            border-bottom: 2px solid #eee;
-        }
-
-        .table-custom tbody td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            color: #666;
-            vertical-align: middle;
-        }
-
-        .table-custom tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .table-custom tbody tr:hover {
-            background-color: #fafafa; /* Hiệu ứng hover dòng */
-        }
-
+        /* --- CSS STYLE MẶC ĐỊNH CỦA BẠN (TỐI GIẢN) --- */
+        body { padding: 20px; background-color: #f8f9fa; }
+        .container { max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .btn-primary { width: 100%; font-weight: bold; margin-top: 10px; }
+        .tong-cong { font-weight: bold; color: red; font-size: 1.2rem; }
+        .table-container { margin-top: 20px; overflow-x: auto; }
         .text-right { text-align: right !important; }
-
-        .tong-cong-container {
-            display: flex;
-            justify-content: flex-end;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #444;
-            padding: 5px 15px;
-        }
-
-        .tong-cong-label { margin-right: 10px; }
-        .tong-cong-value { color: #dc3545; /* Màu đỏ cho số tổng */ }
         
-        /* Màu sắc cho dòng Nghỉ bán/Không doanh thu */
+        /* Màu nền nhạt cho các dòng Nghỉ bán/Không doanh thu */
         .tr-nghi-ban {
             background-color: #fff3cd !important;
             font-style: italic;
         }
-        
-        .alert-custom {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 500;
-            display: none; /* Mặc định ẩn */
-        }
-        
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h3>QUẢN LÝ DOANH THU S1a-HKD</h3>
-    
-    <div id="alertBox" class="alert-custom alert-error"></div>
+    <h3 class="text-center">QUẢN LÝ DOANH THU S1a-HKD</h3>
 
     <div class="form-group">
         <label>Ngày tháng:</label>
@@ -229,20 +51,24 @@
         <input type="text" id="sotien" class="form-control" placeholder="0" oninput="formatInputMoney(this)">
     </div>
 
-    <button id="btnSubmit" class="btn-submit" onclick="themGiaoDich()">💾 LƯU & ĐỒNG BỘ</button>
+    <button id="btnSubmit" class="btn btn-primary" onclick="themGiaoDich()">💾 LƯU & ĐỒNG BỘ</button>
 
     <hr>
 
-    <div class="search-filter-section">
-        <select id="thangFilter" class="form-control" onchange="locDuLieu()">
-            <option value="">Tất cả tháng</option>
-        </select>
-        <input type="text" id="timKiem" class="form-control" placeholder="Tìm kiếm nhanh..." oninput="locDuLieu()">
+    <div class="row mb-3">
+        <div class="col">
+            <select id="thangFilter" class="form-control" onchange="locDuLieu()">
+                <option value="">Tất cả tháng</option>
+            </select>
+        </div>
+        <div class="col">
+            <input type="text" id="timKiem" class="form-control" placeholder="Tìm kiếm nhanh..." oninput="locDuLieu()">
+        </div>
     </div>
 
     <div class="table-container">
-        <table class="table-custom" id="bangDoanhThu">
-            <thead>
+        <table class="table table-bordered table-striped" id="bangDoanhThu">
+            <thead class="thead-dark">
                 <tr>
                     <th>Ngày</th>
                     <th>Diễn giải</th>
@@ -252,20 +78,13 @@
             <tbody></tbody>
         </table>
     </div>
-    
-    <div class="tong-cong-container">
-        <span class="tong-cong-label">Tổng tháng:</span>
-        <span class="tong-cong-value"><span id="tongTien">0</span> VNĐ</span>
-    </div>
+    <div class="text-right tong-cong">Tổng cộng: <span id="tongTien">0</span> VNĐ</div>
 </div>
 
 <script>
     // --- 1. CẤU HÌNH (THAY LINK CỦA BẠN VÀO ĐÂY) ---
-    // Link Web App từ Google Apps Script
     const SCRIPT_URL = "LINK_WEB_APP_CUA_BAN"; 
-    // Link file Google Sheet của bạn
     const HARDCODED_SHEET_URL = "LINK_FILE_GOOGLE_SHEET_CUA_BAN";
-    
     let danhSach = []; // Biến chứa dữ liệu chính
 
     // --- 2. KHỞI TẠO KHI MỞ TRANG ---
@@ -275,14 +94,6 @@
         // Tải dữ liệu từ Google Sheets
         taiDuLieuTuSheet();
     };
-    
-    function showAlert(message) {
-        const alertBox = document.getElementById('alertBox');
-        alertBox.textContent = message;
-        alertBox.style.display = 'block';
-        // Tự ẩn sau 4 giây
-        setTimeout(() => alertBox.style.display = 'none', 4000);
-    }
 
     // --- 3. XỬ LÝ DROPDOWN DIỄN GIẢI: THÔNG MINH ---
     function handleSelectChange() {
@@ -304,7 +115,6 @@
 
     // --- 4. HÀM THÊM GIAO DỊCH (FIX LỖI {} VÀ CHECK LOGIC) ---
     async function themGiaoDich() {
-        // Lấy dữ liệu
         const ngayRaw = document.getElementById('ngay').value; // yyyy-mm-dd
         const selectDiengiai = document.getElementById('diengiai');
         let diengiaiVal = selectDiengiai.value;
@@ -330,13 +140,13 @@
 
         // 2. Kiểm tra điều kiện nhập liệu
         if (!ngayHienThi || !diengiaiVal) {
-            showAlert("⚠️ Bạn chưa chọn ngày hoặc nội dung diễn giải!");
+            alert("⚠️ Vui lòng chọn ngày và nội dung diễn giải!");
             return;
         }
 
         // Kiểm tra chặn doanh thu bằng 0
         if (selectDiengiai.value === "Doanh thu bán hàng" && sotien <= 0) {
-            showAlert("❌ Lỗi: 'Doanh thu bán hàng' phải có số tiền lớn hơn 0!");
+            alert("❌ Lỗi: 'Doanh thu bán hàng' phải có số tiền lớn hơn 0!");
             return;
         }
 
@@ -350,7 +160,6 @@
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
-                // Ép kiểu sạch sẽ trước khi gửi
                 body: JSON.stringify({ 
                     ngay: String(ngayHienThi), 
                     diengiai: String(diengiaiVal), 
@@ -358,7 +167,9 @@
                 })
             });
 
-            // 5. Reset form sau khi lưu thành công
+            alert("✅ Đã lưu thành công!");
+
+            // 5. Reset form
             selectDiengiai.value = "";
             document.getElementById('diengiaiKhac').value = "";
             document.getElementById('oNhapKhac').style.display = "none";
@@ -377,7 +188,7 @@
             setTimeout(taiDuLieuTuSheet, 2000);
 
         } catch (e) {
-            showAlert("❌ Lỗi kết nối: " + e.message);
+            alert("❌ Lỗi kết nối: " + e.message);
         } finally {
             // 8. Khôi phục trạng thái nút bấm
             btn.innerText = "💾 LƯU & ĐỒNG BỘ";
@@ -388,9 +199,8 @@
     // --- 5. TẢI VÀ HIỂN THỊ DỮ LIỆU ---
     async function taiDuLieuTuSheet() {
         try {
-            // Tạo link export CSV sạch
+            // Link export CSV sạch
             let csvUrl = HARDCODED_SHEET_URL.replace(/\/edit.*$/, '/export?format=csv&gid=0&t=' + new Date().getTime());
-            
             const response = await fetch(csvUrl);
             const text = await response.text();
             
@@ -401,7 +211,6 @@
                 // Tách cột bằng dấu phẩy, xử lý dấu ngoặc kép
                 const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 if (cols.length >= 3 && cols[0].trim() !== "") {
-                    // Đưa dữ liệu sạch vào mảng
                     danhSach.push({
                         ngay: cols[0].replace(/"/g, '').trim(), // dd/mm/yyyy
                         diengiai: cols[1].replace(/"/g, '').trim(),
@@ -410,18 +219,14 @@
                 }
             });
 
-            // Sắp xếp dữ liệu theo ngày mới nhất (dd/mm/yyyy)
+            // Sắp xếp dữ liệu ngày mới nhất (dd/mm/yyyy)
             danhSach.sort((a, b) => {
-                const partsA = a.ngay.split('/');
-                const partsB = b.ngay.split('/');
-                // Chuyển về YYYYMMDD để so sánh số
-                return (partsB[2] + partsB[1] + partsB[0]) - (partsA[2] + partsA[1] + partsA[0]);
+                const pA = a.ngay.split('/'); const pB = b.ngay.split('/');
+                return (pB[2]+pB[1]+pB[0]) - (pA[2]+pA[1]+pA[0]);
             });
 
-            // Vẽ lại bảng và tạo bộ lọc
             renderBang();
             taoDanhSachThang();
-
         } catch (e) {
             console.error("Lỗi tải dữ liệu:", e);
         }
@@ -435,11 +240,10 @@
 
         data.forEach(item => {
             const row = document.createElement('tr');
-            
             // Ép kiểu String cho ngày để không bị lỗi {}
             const txtNgay = (typeof item.ngay === 'object') ? "" : String(item.ngay);
             
-            // Tô màu đặc biệt cho dòng Nghỉ bán
+            // Tô màu nhạt cho dòng Nghỉ bán/Không doanh thu
             if (item.diengiai.includes("Nghỉ bán") || item.diengiai.includes("Không có doanh thu")) {
                 row.classList.add('tr-nghi-ban');
             }
@@ -452,8 +256,6 @@
             tbody.appendChild(row);
             tong += Number(item.sotien);
         });
-
-        // Cập nhật tổng tiền VNĐ
         document.getElementById('tongTien').textContent = tong.toLocaleString('vi-VN');
     }
 
@@ -465,7 +267,7 @@
         input.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
-    // Chuyển chuỗi định dạng (1.000.000) về số (1000000)
+    // Chuyển chuỗi (1.000.000) về số (1000000)
     function getRawAmount(str) {
         if (!str) return 0;
         return parseFloat(str.replace(/\./g, "")) || 0;
@@ -478,34 +280,26 @@
         
         danhSach.forEach(i => { 
             if(i.ngay && i.ngay.includes('/')) {
-                // Tách mm/yyyy
                 setThang.add(i.ngay.split('/')[1] + '/' + i.ngay.split('/')[2]);
             }
         });
         
-        // Reset dropdown
         select.innerHTML = '<option value="">Tất cả tháng</option>';
-        
-        // Sắp xếp tháng mới nhất lên đầu và thêm vào dropdown
         Array.from(setThang).sort().reverse().forEach(t => {
             const opt = document.createElement('option');
-            opt.value = t; 
-            opt.textContent = "Tháng " + t;
+            opt.value = t; opt.textContent = "Tháng " + t;
             select.appendChild(opt);
         });
     }
 
-    // Xử lý lọc theo tháng và tìm kiếm
+    // Lọc theo tháng và tìm kiếm
     function locDuLieu() {
         const thang = document.getElementById('thangFilter').value; // mm/yyyy
         const key = document.getElementById('timKiem').value.toLowerCase();
         
         const filtered = danhSach.filter(i => {
-            // Kiểm tra khớp tháng (mm/yyyy)
             const hopLeThang = thang ? i.ngay.endsWith(thang) : true;
-            // Kiểm tra khớp từ khóa (diễn giải hoặc ngày)
             const hopLeKey = i.diengiai.toLowerCase().includes(key) || i.ngay.includes(key);
-            
             return hopLeThang && hopLeKey;
         });
         
