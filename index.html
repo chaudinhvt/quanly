@@ -29,6 +29,8 @@
         .tong-box { background: #fff3f3; padding: 15px; border-radius: 8px; text-align: right; border: 1px solid #ffcccc; }
         .tong { font-weight: bold; font-size: 1.3rem; color: #c0392b; }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* CSS cho dòng Nghỉ bán trong bảng */
+        .tr-nghi-ban { background-color: #fffde7 !important; font-style: italic; }
     </style>
 </head>
 <body>
@@ -40,7 +42,17 @@
         <input type="date" id="ngay">
         
         <label>Diễn giải:</label>
-        <textarea id="diengiai" rows="2" placeholder="Nội dung bán hàng..."></textarea>
+        <select id="diengiai" onchange="handleSelectChange()">
+            <option value="">-- Chọn nội dung --</option>
+            <option value="Doanh thu bán hàng">Doanh thu bán hàng</option>
+            <option value="Nghỉ bán">Nghỉ bán</option>
+            <option value="Không có doanh thu">Không có doanh thu</option>
+            <option value="Khác">Khác (Tự nhập tay)</option>
+        </select>
+
+        <div id="oNhapKhac" style="display: none;">
+            <input type="text" id="diengiaiKhac" placeholder="Nhập diễn giải cụ thể...">
+        </div>
         
         <label>Số tiền (VNĐ):</label>
         <input type="text" id="sotien" placeholder="0" oninput="formatMoney(this)">
@@ -71,125 +83,134 @@
         // --- CẤU HÌNH ---
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwCTaA9hMx6lp9yRMkpqFw9DhBNh9nkVl4eirE1lza-LXArjWtWPzK8MQKUd78_J1XE/exec";
         const HARDCODED_SHEET_URL = "https://docs.google.com/spreadsheets/d/1zM5H0pempE7hRq2Yba-Xtj8qBlMMz30xVtyjkiaGWSk/edit?gid=0#gid=0"; 
-        // ----------------
-
+        
         let danhSach = [];
 
-        // Khởi tạo tự động khi mở trang
         window.onload = function() {
             document.getElementById('ngay').valueAsDate = new Date();
             taiDuLieuTuSheet();
         };
 
-        // Định dạng dấu chấm hàng nghìn khi gõ
+        // --- XỬ LÝ LOGIC CHỌN DIỄN GIẢI ---
+        function handleSelectChange() {
+            const selectVal = document.getElementById('diengiai').value;
+            const oSotien = document.getElementById('sotien');
+            const oNhapKhac = document.getElementById('oNhapKhac');
+
+            oNhapKhac.style.display = (selectVal === "Khác") ? "block" : "none";
+
+            // Tự động điền 0 nếu nghỉ bán
+            if (selectVal === "Nghỉ bán" || selectVal === "Không có doanh thu") {
+                oSotien.value = "0";
+            } else {
+                oSotien.value = "";
+            }
+        }
+
         function formatMoney(input) {
             let value = input.value.replace(/\D/g, "");
             if (value === "") { input.value = ""; return; }
             input.value = new Intl.NumberFormat('vi-VN').format(value);
         }
 
-        // Lấy giá trị số thuần túy (không dấu chấm)
         function getRawAmount(val) {
-            return parseFloat(val.replace(/\./g, "")) || 0;
+            return parseFloat(val.replace(/\D/g, "")) || 0;
         }
 
-        // Tải dữ liệu từ Google Sheets
         async function taiDuLieuTuSheet() {
-        try {
-        let csvUrl = HARDCODED_SHEET_URL.replace(/\/edit.*$/, '/export?format=csv&gid=0&t=' + new Date().getTime());
-        const response = await fetch(csvUrl);
-        const text = await response.text();
-        const rows = text.split('\n').slice(1); 
-        danhSach = [];
-        rows.forEach(row => {
-            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
-            if (cols.length >= 3 && cols[0].trim() !== "") {
-                let ngayXuly = cols[0].replace(/"/g, '').trim();
-                danhSach.push({
-                    ngay: ngayXuly,
-                    diengiai: cols[1].replace(/"/g, '').trim(),
-                    sotien: parseFloat(cols[2].replace(/"/g, '')) || 0
+            try {
+                let csvUrl = HARDCODED_SHEET_URL.replace(/\/edit.*$/, '/export?format=csv&gid=0&t=' + new Date().getTime());
+                const response = await fetch(csvUrl);
+                const text = await response.text();
+                const rows = text.split('\n').slice(1); 
+                danhSach = [];
+                rows.forEach(row => {
+                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
+                    if (cols.length >= 3 && cols[0].trim() !== "") {
+                        danhSach.push({
+                            ngay: cols[0].replace(/"/g, '').trim(),
+                            diengiai: cols[1].replace(/"/g, '').trim(),
+                            sotien: parseFloat(cols[2].replace(/"/g, '')) || 0
+                        });
+                    }
                 });
+
+                danhSach.sort((a, b) => {
+                    const partsA = a.ngay.split('/');
+                    const partsB = b.ngay.split('/');
+                    return (partsB[2] + partsB[1] + partsB[0]) - (partsA[2] + partsA[1] + partsA[0]);
+                });
+
+                renderBang();
+                taoDanhSachThang();
+            } catch (e) {
+                console.error("Lỗi tải dữ liệu:", e);
             }
-        });
+        }
 
-        // Sắp xếp theo định dạng dd/mm/yyyy
-        danhSach.sort((a, b) => {
-            const partsA = a.ngay.split('/');
-            const partsB = b.ngay.split('/');
-            // Chuyển về YYYYMMDD để so sánh số
-            return (partsB[2] + partsB[1] + partsB[0]) - (partsA[2] + partsA[1] + partsA[0]);
-        });
-
-        renderBang();
-        taoDanhSachThang();
-    } catch (e) {
-        console.error("Lỗi tải dữ liệu:", e);
-    }
-}
-
-        // Hàm Lưu và Đồng bộ
         async function themGiaoDich() {
-    const ngayRaw = document.getElementById('ngay').value; // Giá trị gốc yyyy-mm-dd
-    const diengiai = document.getElementById('diengiai').value.trim();
-    const sotienStr = document.getElementById('sotien').value;
-    const sotien = getRawAmount(sotienStr);
-    const btn = document.getElementById('btnSubmit');
-
-    // --- CHUYỂN ĐỔI ĐỊNH DẠNG NGÀY SANG dd/mm/yyyy ---
-    let ngayHienThi = ngayRaw;
-    if (ngayRaw) {
-        const [y, m, d] = ngayRaw.split('-');
-        ngayHienThi = `${d}/${m}/${y}`;
-    }
+            const ngayRaw = document.getElementById('ngay').value;
+            const selectObj = document.getElementById('diengiai');
+            let diengiaiVal = selectObj.value;
             
-    // --- LOGIC KIỂM TRA LINH HOẠT ---
-    const diengiaiLower = diengiai.toLowerCase();
-    
-    // Danh sách các từ khóa cho phép số tiền bằng 0
-    const choPhepSo0 = diengiaiLower.includes("nghỉ bán") || 
-                       diengiaiLower.includes("không có doanh thu") || 
-                       diengiaiLower.includes("không bán được");
+            if (diengiaiVal === "Khác") {
+                diengiaiVal = document.getElementById('diengiaiKhac').value.trim();
+            }
 
-    // Điều kiện chặn: Thiếu ngày/diễn giải HOẶC (Tiền <= 0 nhưng không thuộc diện cho phép)
-    if (!ngay || !diengiai || (sotien <= 0 && !choPhepSo0)) {
-        alert("⚠️ Vui lòng kiểm tra lại!\n\nSố tiền chỉ được bằng 0 nếu diễn giải chứa cụm từ: 'Nghỉ bán', 'Không có doanh thu' hoặc 'Không bán được'."); 
-        return;
-    }
+            const sotienStr = document.getElementById('sotien').value;
+            const sotien = getRawAmount(sotienStr);
+            const btn = document.getElementById('btnSubmit');
 
-    // --- CÁC BƯỚC XỬ LÝ ĐỒNG BỘ ---
-    btn.innerText = "⌛ ĐANG LƯU...";
-    btn.disabled = true;
+            // Định dạng ngày dd/mm/yyyy - Ép kiểu String tránh lỗi {}
+            let ngayHienThi = "";
+            if (ngayRaw) {
+                const [y, m, d] = ngayRaw.split('-');
+                ngayHienThi = String(d) + "/" + String(m) + "/" + String(y);
+            }
 
-    try {
-        // 1. Gửi dữ liệu tới Apps Script
-        await fetch(SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ngay, diengiai, sotien })
-        });
+            // Chặn lỗi
+            if (!ngayHienThi || !diengiaiVal) {
+                alert("⚠️ Vui lòng nhập đầy đủ Ngày và Diễn giải!");
+                return;
+            }
 
-        alert("Lưu thành công!");
-        
-        // 2. Reset form nhập liệu
-        document.getElementById('diengiai').value = '';
-        document.getElementById('sotien').value = '';
-        
-        // 3. Cập nhật giao diện tạm thời để người dùng thấy ngay kết quả trên bảng
-        danhSach.unshift({ ngay, diengiai, sotien });
-        renderBang();
-        
-        // 4. Tải lại dữ liệu chuẩn từ server sau 2 giây để đảm bảo đồng bộ 100%
-        setTimeout(taiDuLieuTuSheet, 2000);
+            if (selectObj.value === "Doanh thu bán hàng" && sotien <= 0) {
+                alert("❌ 'Doanh thu bán hàng' phải có số tiền lớn hơn 0!");
+                return;
+            }
 
-    } catch (e) {
-        alert("Lỗi kết nối đồng bộ: " + e.message);
-    } finally {
-        btn.innerText = "💾 LƯU & ĐỒNG BỘ";
-        btn.disabled = false;
-    }
-}
+            btn.innerText = "⌛ ĐANG LƯU...";
+            btn.disabled = true;
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        ngay: String(ngayHienThi), 
+                        diengiai: String(diengiaiVal), 
+                        sotien: Number(sotien) 
+                    })
+                });
+
+                alert("Lưu thành công!");
+                document.getElementById('diengiai').value = "";
+                document.getElementById('diengiaiKhac').value = "";
+                document.getElementById('oNhapKhac').style.display = "none";
+                document.getElementById('sotien').value = "";
+                
+                danhSach.unshift({ ngay: String(ngayHienThi), diengiai: String(diengiaiVal), sotien: Number(sotien) });
+                renderBang();
+                setTimeout(taiDuLieuTuSheet, 2000);
+
+            } catch (e) {
+                alert("Lỗi kết nối: " + e.message);
+            } finally {
+                btn.innerText = "💾 LƯU & ĐỒNG BỘ";
+                btn.disabled = false;
+            }
+        }
 
         function renderBang(dataFiltered = null) {
             const data = dataFiltered || danhSach;
@@ -198,8 +219,11 @@
             let tong = 0;
             data.forEach(item => {
                 const row = document.createElement('tr');
+                if (item.diengiai.includes("Nghỉ bán") || item.diengiai.includes("Không có doanh thu")) {
+                    row.classList.add('tr-nghi-ban');
+                }
                 row.innerHTML = `
-                    <td>${item.ngay}</td>
+                    <td>${String(item.ngay)}</td>
                     <td>${item.diengiai}</td>
                     <td style="text-align:right">${item.sotien.toLocaleString('vi-VN')}</td>
                 `;
@@ -210,42 +234,37 @@
         }
 
         function taoDanhSachThang() {
-    const select = document.getElementById('thangFilter');
-    const selectedVal = select.value;
-    select.innerHTML = '<option value="">Tất cả tháng</option>';
-    const thangSet = new Set();
-    
-    danhSach.forEach(item => { 
-        if (item.ngay && item.ngay.includes('/')) {
-            const parts = item.ngay.split('/');
-            thangSet.add(parts[1] + '/' + parts[2]); // Lấy mm/yyyy
-        }
-    });
+            const select = document.getElementById('thangFilter');
+            const selectedVal = select.value;
+            select.innerHTML = '<option value="">Tất cả tháng</option>';
+            const thangSet = new Set();
+            
+            danhSach.forEach(item => { 
+                if (item.ngay && item.ngay.includes('/')) {
+                    const parts = item.ngay.split('/');
+                    thangSet.add(parts[1] + '/' + parts[2]); 
+                }
+            });
 
-    Array.from(thangSet).sort((a, b) => {
-        const [m1, y1] = a.split('/');
-        const [m2, y2] = b.split('/');
-        return (y2 + m2) - (y1 + m1);
-    }).forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t; 
-        opt.textContent = "Tháng " + t;
-        select.appendChild(opt);
-    });
-    select.value = selectedVal;
-}
+            Array.from(thangSet).sort((a, b) => {
+                const [m1, y1] = a.split('/');
+                const [m2, y2] = b.split('/');
+                return (y2 + m2) - (y1 + m1);
+            }).forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t; 
+                opt.textContent = "Tháng " + t;
+                select.appendChild(opt);
+            });
+            select.value = selectedVal;
+        }
 
         function locDuLieu() {
-    const thang = document.getElementById('thangFilter').value; // Định dạng mm/yyyy
-    const key = document.getElementById('timKiem').value.toLowerCase();
-    
-    const filtered = danhSach.filter(i => {
-        const hopLeThang = thang ? i.ngay.endsWith(thang) : true;
-        const hopLeKey = i.diengiai.toLowerCase().includes(key) || i.ngay.includes(key);
-        return hopLeThang && hopLeKey;
-    });
-    renderBang(filtered);
-}
+            const thang = document.getElementById('thangFilter').value;
+            const key = document.getElementById('timKiem').value.toLowerCase();
+            const filtered = danhSach.filter(i => (thang ? i.ngay.endsWith(thang) : true) && (i.diengiai.toLowerCase().includes(key) || i.ngay.includes(key)));
+            renderBang(filtered);
+        }
 
         function xuatExcel() {
             let dataExcel = [
@@ -253,9 +272,12 @@
                 ["Ngày ghi sổ", "Diễn giải", "Số tiền (VNĐ)"]
             ];
             let tong = 0;
-            document.querySelectorAll('#bangDoanhThu tbody tr').forEach(r => {
+            const tbodyRows = document.querySelectorAll('#bangDoanhThu tbody tr');
+            if (tbodyRows.length === 0) { alert("Không có dữ liệu để xuất!"); return; }
+
+            tbodyRows.forEach(r => {
                 const c = r.querySelectorAll('td');
-                const st = parseFloat(c[2].innerText.replace(/\./g, ''));
+                const st = parseFloat(c[2].innerText.replace(/\./g, '')) || 0;
                 dataExcel.push([c[0].innerText, c[1].innerText, st]);
                 tong += st;
             });
