@@ -266,27 +266,44 @@
             renderBang(filtered);
         }
 
-        function xuatExcel() {
-            let dataExcel = [
-                ["SỔ CHI TIẾT DOANH THU BÁN HÀNG HÓA, DỊCH VỤ (Mẫu S1a-HKD)"],
-                ["Ngày ghi sổ", "Diễn giải", "Số tiền (VNĐ)"]
-            ];
-            let tong = 0;
-            const tbodyRows = document.querySelectorAll('#bangDoanhThu tbody tr');
-            if (tbodyRows.length === 0) { alert("Không có dữ liệu để xuất!"); return; }
-
-            tbodyRows.forEach(r => {
-                const c = r.querySelectorAll('td');
-                const st = parseFloat(c[2].innerText.replace(/\./g, '')) || 0;
-                dataExcel.push([c[0].innerText, c[1].innerText, st]);
-                tong += st;
-            });
-            dataExcel.push(["", "TỔNG CỘNG", tong]);
+        async function xuatExcel() {
+            const btnExport = document.querySelector('.btn-export');
+            const originalText = btnExport.innerText;
             
-            const ws = XLSX.utils.aoa_to_sheet(dataExcel);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Doanh Thu");
-            XLSX.writeFile(wb, "So_Doanh_Thu_S1a.xlsx");
+            try {
+                btnExport.innerText = "⏳ ĐANG XUẤT FILE...";
+                btnExport.disabled = true;
+
+                // 1. Tạo link để tải dữ liệu từ Sheet cụ thể "So S1a-HKD"
+                // Lưu ý: Chúng ta dùng tham số sheet=So%20S1a-HKD để chỉ định đúng trang
+                let exportUrl = HARDCODED_SHEET_URL.replace(/\/edit.*$/, '/export?format=csv&sheet=So%20S1a-HKD&t=' + new Date().getTime());
+                
+                const response = await fetch(exportUrl);
+                if (!response.ok) throw new Error("Không thể tải dữ liệu từ Google Sheets");
+                
+                const csvText = await response.text();
+                
+                // 2. Chuyển đổi CSV sang mảng dữ liệu (Array of Arrays)
+                const rows = csvText.split('\n').map(row => {
+                    // Xử lý dấu phẩy bên trong dấu ngoặc kép của CSV
+                    return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(col => col.replace(/"/g, '').trim());
+                });
+
+                // 3. Tạo file Excel bằng thư viện XLSX
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "So S1a-HKD");
+
+                // 4. Tải file về máy
+                XLSX.writeFile(wb, "So_Doanh_Thu_S1a_Chuan.xlsx");
+
+            } catch (e) {
+                console.error("Lỗi xuất Excel:", e);
+                alert("❌ Lỗi khi xuất Excel: " + e.message);
+            } finally {
+                btnExport.innerText = originalText;
+                btnExport.disabled = false;
+            }
         }
     </script>
 </body>
